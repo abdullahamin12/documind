@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from .base import LLMClient
 
 class NvidiaLLMClient(LLMClient):
@@ -12,15 +13,15 @@ class NvidiaLLMClient(LLMClient):
         context_text = "\n".join(context)
         prompt = f"""Answer the question using only the context below.
 
-Context:
-{context_text}
+    Context:
+    {context_text}
 
-Question:
-{question}"""
+    Question:
+    {question}"""
 
         headers = {
             "Authorization": self.api_key,
-            "Accept": "application/json"
+            "Accept": "text/event-stream"
         }
         payload = {
             "model": self.model,
@@ -33,6 +34,20 @@ Question:
             "stream": True
         }
 
-        result = requests.post(self.url, headers=headers, json=payload)
+        result = requests.post(self.url, headers=headers, json=payload, stream=True)
         result.raise_for_status()
-        return result.json()["choices"][0]["message"]["content"]
+
+        full_answer = ""
+        for line in result.iter_lines():
+            if not line:
+                continue
+            decoded = line.decode("utf-8")
+            if decoded == "data: [DONE]":
+                break
+            if decoded.startswith("data: "):
+                chunk = json.loads(decoded[len("data: "):])
+                delta = chunk["choices"][0]["delta"].get("content")
+                if delta:
+                    full_answer += delta
+
+        return full_answer
