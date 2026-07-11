@@ -2,11 +2,12 @@ import os
 from typing import Optional
 from openai import OpenAI
 from .base import Embedder
-
+from dotenv import load_dotenv
+load_dotenv()
 class NvidiaEmbedder(Embedder):
     def __init__(self, model: str = "nvidia/nv-embed-v1"):
         self.client = OpenAI(
-            api_key=os.environ["NVIDIA_API_KEY"],
+            api_key=os.environ["NVIDIA_API_KEY1"],
             base_url="https://integrate.api.nvidia.com/v1"
         )
         self.model = model
