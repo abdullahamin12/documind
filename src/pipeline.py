@@ -1,8 +1,9 @@
 #_____________ALL ABCs______________
-from chunking.base import Chunker
-from embedding.base import Embedder
-from vectorstore.base import VectorStore
-from llm.base import LLMClient
+from .chunking.base import Chunker
+from .embedding.base import Embedder
+from .vectorstore.base import VectorStore
+from .llm.base import LLMClient
+
 
 #_______________RAG orchestrator____________________
 class RAGPipeline:
