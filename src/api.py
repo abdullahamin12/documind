@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     pipeline = RAGPipeline(
         chunker=LangChainChunker(),
         embedder=NvidiaEmbedder(),
-        vector_store=QdrantVectorStore(),
+        vector_store=QdrantVectorStore(host="qdrant"),
         llm_client=NvidiaLLMClient()
     )
     yield
