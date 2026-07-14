@@ -9,9 +9,26 @@ class NvidiaLLMClient(LLMClient):
         self.model = model
         self.url = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-    def response(self, context: list[str], question: str) -> str:
+    # Notice how it expects `history` to be passed in as a parameter, not fetched globally
+    def response(self, context: list[str], question: str, history: list[dict] = None) -> str:
+        
+        # 1. Format the retrieved context documents
         context_text = "\n".join(context)
-        prompt = f"""Answer the question using only the context below.
+        
+        # 2. Format the chat history into a readable string
+        history_text = "No previous conversation."
+        if history:
+            history_lines = []
+            for msg in history:
+                history_lines.append(f"User: {msg['question']}")
+                history_lines.append(f"Assistant: {msg['answer']}")
+            history_text = "\n".join(history_lines)
+
+        # 3. Inject both history and context into the prompt
+        prompt = f"""Answer the question using only the context below. Consider the past conversation to understand what the user is referring to.
+
+    Past Conversation:
+    {history_text}
 
     Context:
     {context_text}
@@ -23,6 +40,7 @@ class NvidiaLLMClient(LLMClient):
             "Authorization": self.api_key,
             "Accept": "text/event-stream"
         }
+        
         payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
